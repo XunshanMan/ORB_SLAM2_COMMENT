@@ -130,7 +130,7 @@ void MapPoint::AddObservation(KeyFrame* pKF, size_t idx)
     if(mObservations.count(pKF))
         return;
     // 记录下能观测到该MapPoint的KF和该MapPoint在KF中的索引
-    mObservations[pKF]=idx;
+    mObservations[pKF]=idx;         // [ 一个指针- > id的映射]
 
     if(pKF->mvuRight[idx]>=0)
         nObs+=2; // 双目或者grbd
@@ -324,7 +324,8 @@ void MapPoint::ComputeDistinctiveDescriptors()
         KeyFrame* pKF = mit->first;
 
         if(!pKF->isBad())
-            vDescriptors.push_back(pKF->mDescriptors.row(mit->second));
+            vDescriptors.push_back(pKF->mDescriptors.row(mit->second));         // 所有特征点都以列的形式存放在mDescriptors中了.
+                                                                                // 将所有记录的观测对应的关键帧中的特征点的描述子取出来放到vDescriptors向量中.
     }
 
     if(vDescriptors.empty())
@@ -335,7 +336,7 @@ void MapPoint::ComputeDistinctiveDescriptors()
     const size_t N = vDescriptors.size();
 	
     //float Distances[N][N];
-	std::vector<std::vector<float> > Distances;
+	std::vector<std::vector<float> > Distances;         // Distances 可以视为一个距离矩阵, a_ij = Distance i -> j
 	Distances.resize(N, vector<float>(N, 0));
 	for (size_t i = 0; i<N; i++)
     {

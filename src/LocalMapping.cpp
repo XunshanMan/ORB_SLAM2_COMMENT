@@ -59,7 +59,7 @@ void LocalMapping::Run()
 
         // Check if there are keyframes in the queue
         // 等待处理的关键帧列表不为空
-        if(CheckNewKeyFrames())
+        if(CheckNewKeyFrames())         // [ LocalMapping 也维护了关键帧列表 ] 如果此时有关键帧进来了，开始处理。
         {
             // BoW conversion and insertion in Map
             // VI-A keyframe insertion
@@ -69,7 +69,7 @@ void LocalMapping::Run()
             // Check recent MapPoints
             // VI-B recent map points culling
             // 剔除ProcessNewKeyFrame函数中引入的不合格MapPoints
-            MapPointCulling();
+            MapPointCulling();          //  [ 给mapPoint们加加标记 ]
 
             // Triangulate new MapPoints
             // VI-C new map points creation
@@ -97,7 +97,7 @@ void LocalMapping::Run()
                 // VI-E local keyframes culling
                 // 检测并剔除当前帧相邻的关键帧中冗余的关键帧
                 // 剔除的标准是：该关键帧的90%的MapPoints可以被其它关键帧观测到
-                // trick! 
+                // trick!
                 // Tracking中先把关键帧交给LocalMapping线程
                 // 并且在Tracking中InsertKeyFrame函数的条件比较松，交给LocalMapping线程的关键帧会比较密
                 // 在这里再删除冗余的关键帧
@@ -107,7 +107,7 @@ void LocalMapping::Run()
             // 将当前帧加入到闭环检测队列中
             mpLoopCloser->InsertKeyFrame(mpCurrentKeyFrame);
         }
-        else if(Stop())
+        else if(Stop()) // 判断是否要停下建图.
         {
             // Safe area to stop
             while(isStopped() && !CheckFinish())
@@ -119,7 +119,7 @@ void LocalMapping::Run()
                 break;
         }
 
-        ResetIfRequested();
+        ResetIfRequested();     // [ 题外： 将所有流程都放在函数里面，是否需要处理的判断也在函数中，使得外面的逻辑非常清晰。 ]
 
         // Tracking will see that Local Mapping is not busy
         SetAcceptKeyFrames(true);
@@ -128,7 +128,7 @@ void LocalMapping::Run()
             break;
 
         //usleep(3000);
-        std::this_thread::sleep_for(std::chrono::milliseconds(3));
+        std::this_thread::sleep_for(std::chrono::milliseconds(3));      // 该线程存在3ms间隙.
 
     }
 
@@ -299,7 +299,7 @@ void LocalMapping::CreateNewMapPoints()
     cv::Mat tcw1 = mpCurrentKeyFrame->GetTranslation();
     cv::Mat Tcw1(3,4,CV_32F);
     Rcw1.copyTo(Tcw1.colRange(0,3));
-    tcw1.copyTo(Tcw1.col(3));
+    tcw1.copyTo(Tcw1.col(3));               // [ 获得当前帧位姿的 Tcw ]
 
     // 得到当前关键帧在世界坐标系中的坐标
     cv::Mat Ow1 = mpCurrentKeyFrame->GetCameraCenter();
@@ -390,7 +390,7 @@ void LocalMapping::CreateNewMapPoints()
             const cv::KeyPoint &kp1 = mpCurrentKeyFrame->mvKeysUn[idx1];
             // mvuRight中存放着双目的深度值，如果不是双目，其值将为-1
             const float kp1_ur=mpCurrentKeyFrame->mvuRight[idx1];
-            bool bStereo1 = kp1_ur>=0;
+            bool bStereo1 = kp1_ur>=0;      // [ 记录是否是立体相机 ]
 
             // 当前匹配在邻接关键帧中的特征点
             const cv::KeyPoint &kp2 = pKF2->mvKeysUn[idx2];
